@@ -1,0 +1,45 @@
+name: 'E2E Tests - Automation Exercise (PGATS)'
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  cypress-e2e:
+    name: 'Execução dos Testes E2E (Cypress)'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout do Repositório'
+        uses: actions/checkout@v4
+
+      - name: 'Configuração do Ambiente Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 'Instalação de Dependências'
+        run: npm ci
+
+      - name: 'Execução dos Testes Automatizados Headless'
+        run: npm run test:electron
+
+      - name: 'Publicação do Relatório Mochawesome'
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mochawesome-report
+          path: cypress/reports/
+          retention-days: 14
+
+      - name: 'Publicação de Screenshots em caso de falha'
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots/
+          retention-days: 7
